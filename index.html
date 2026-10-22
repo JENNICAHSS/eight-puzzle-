@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interactive 8-Puzzle Solver - A* Search</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md navbar-dark app-nav sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="#home" data-page="home">8-Puzzle &middot; A*</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="#home" data-page="home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#solver" data-page="solver">Solver</a></li>
+        <li class="nav-item"><a class="nav-link" href="#compare" data-page="compare">Comparison</a></li>
+        <li class="nav-item"><a class="nav-link" href="#info" data-page="info">Algorithm Info</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-4">
+
+  <!-- ===================== HOME ===================== -->
+  <section id="page-home" class="page">
+    <div class="hero card shadow-sm mb-4">
+      <div class="card-body p-4 p-md-5">
+        <p class="text-uppercase small text-muted mb-1">Course: Artificial Intelligence</p>
+        <h1 class="display-6 fw-bold">Interactive 8-Puzzle Problem Solver using AI Search Algorithms</h1>
+        <p class="lead mb-4">Assignment: Digital Assignment (Case Study) &mdash; Algorithm implemented: <strong>A* Search</strong></p>
+        <div class="row g-3">
+          <div class="col-md-4"><div class="info-pill"><span>Course Name</span><strong>Artificial Intelligence</strong></div></div>
+          <div class="col-md-4"><div class="info-pill"><span>Student Name</span><strong>Jennica Hanlynn</strong></div></div>
+          <div class="col-md-4"><div class="info-pill"><span>Registration Number</span><strong>24BDS0414</strong></div></div>
+        </div>
+        <div class="mt-4 d-flex gap-2 flex-wrap">
+          <a class="btn btn-primary" href="#solver" data-page="solver">Open the Solver</a>
+          <a class="btn btn-outline-secondary" href="#info" data-page="info">About A* Search</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="h4">What is the 8-Puzzle Problem?</h2>
+        <p>The 8-Puzzle is a sliding-tile puzzle played on a 3&times;3 board. Eight tiles numbered 1&ndash;8 share the board with one empty square (the <em>blank</em>). A move slides a tile that is next to the blank into it &mdash; equivalently, the blank moves Up, Down, Left or Right. The task is to transform a given <strong>initial state</strong> into a <strong>goal state</strong> using as few moves as possible.</p>
+        <h3 class="h6 mt-3">As a state-space search problem</h3>
+        <ul class="mb-0">
+          <li><strong>State:</strong> an arrangement of the nine squares (9!/2 = 181,440 reachable states).</li>
+          <li><strong>Initial / Goal state:</strong> supplied by the user (or generated randomly).</li>
+          <li><strong>Actions:</strong> move the blank Up, Down, Left or Right (2&ndash;4 legal actions).</li>
+          <li><strong>Transition model:</strong> swap the blank with the neighbouring tile.</li>
+          <li><strong>Path cost:</strong> 1 per move, so path cost = number of moves.</li>
+          <li><strong>Solvability:</strong> a goal is reachable only if the start and goal have the same inversion parity.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SOLVER ===================== -->
+  <section id="page-solver" class="page d-none">
+    <div class="row g-4">
+
+      <!-- Left: setup -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm mb-3">
+          <div class="card-header fw-semibold">1 &middot; Puzzle Input</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label small fw-semibold">Initial State</label>
+                <div id="startGrid" class="grid-input"></div>
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-semibold">Goal State</label>
+                <div id="goalGrid" class="grid-input"></div>
+              </div>
+            </div>
+            <p class="form-text mb-2">Use digits 1&ndash;8 once each; leave one cell empty (or type <code>_</code> / <code>0</code>) for the blank.</p>
+            <div class="d-flex flex-wrap gap-2">
+              <button id="btnRandom" class="btn btn-success btn-sm">Generate Random Puzzle</button>
+              <button id="btnExample" class="btn btn-outline-secondary btn-sm">Load Example</button>
+              <button id="btnStdGoal" class="btn btn-outline-secondary btn-sm">Standard Goal</button>
+            </div>
+            <div id="inputMsg" class="small mt-2"></div>
+          </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+          <div class="card-header fw-semibold">2 &middot; Algorithm Selection</div>
+          <div class="card-body">
+            <label class="form-label small fw-semibold" for="algoSelect">Algorithm</label>
+            <select id="algoSelect" class="form-select form-select-sm mb-1" disabled>
+              <option>A* Search</option>
+            </select>
+            <div class="form-text mb-3">A* is the algorithm assigned to registration number 24BDS0414.</div>
+            <label class="form-label small fw-semibold" for="heuristic">Heuristic</label>
+            <select id="heuristic" class="form-select form-select-sm">
+              <option value="manhattan">Manhattan Distance</option>
+              <option value="misplaced">Misplaced Tiles</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card shadow-sm">
+          <div class="card-header fw-semibold">3 &middot; Controls</div>
+          <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <button id="btnRun" class="btn btn-primary btn-sm">&#9654; Run</button>
+              <button id="btnPause" class="btn btn-warning btn-sm" disabled>&#10074;&#10074; Pause</button>
+              <button id="btnResume" class="btn btn-info btn-sm" disabled>&#9654;&#10074; Resume</button>
+              <button id="btnPrev" class="btn btn-outline-dark btn-sm" disabled>&#9664; Previous Step</button>
+              <button id="btnNext" class="btn btn-outline-dark btn-sm">Next Step &#9654;</button>
+              <button id="btnJump" class="btn btn-outline-success btn-sm" disabled>Jump to Solution</button>
+              <button id="btnReset" class="btn btn-outline-danger btn-sm">&#8635; Reset</button>
+            </div>
+            <label class="form-label small fw-semibold mb-0" for="speed">Speed: <span id="speedLabel">5</span>/10</label>
+            <input id="speed" type="range" class="form-range" min="1" max="10" value="5">
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle: visualization -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm mb-3">
+          <div class="card-header fw-semibold d-flex justify-content-between">
+            <span>Puzzle Visualization</span><span id="phaseLabel" class="badge bg-secondary">Ready</span>
+          </div>
+          <div class="card-body text-center">
+            <div class="row g-2 mb-3 justify-content-center">
+              <div class="col-6"><div class="small text-muted mb-1">Initial State</div><div id="initialMini"></div></div>
+              <div class="col-6"><div class="small text-muted mb-1">Goal State</div><div id="goalMini"></div></div>
+            </div>
+            <div class="small text-muted mb-1">Current State <span id="stepCaption" class="ms-1"></span></div>
+            <div id="board" class="board mx-auto" aria-label="Current puzzle state"></div>
+            <div id="moveCaption" class="mt-2 fw-semibold small"></div>
+          </div>
+        </div>
+
+        <div class="card shadow-sm">
+          <div class="card-header fw-semibold">Generated Successor States</div>
+          <div class="card-body"><div id="succList" class="list-wrap"><span class="text-muted small">Run the search to see successors.</span></div></div>
+        </div>
+      </div>
+
+      <!-- Right: process -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm mb-3">
+          <div class="card-header fw-semibold">Search Process (live)</div>
+          <div class="card-body">
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <div class="small text-muted">Current node (expanded)</div><div id="curMini" class="mt-1"></div>
+              </div>
+              <div class="col-6">
+                <div class="small text-muted">Parent node</div><div id="parMini" class="mt-1"></div>
+              </div>
+            </div>
+            <table class="table table-sm metric-table mb-0">
+              <tbody>
+                <tr><th>Current search depth</th><td id="mDepth">-</td></tr>
+                <tr><th>Path cost g(n)</th><td id="mG">-</td></tr>
+                <tr><th>Heuristic h(n)</th><td id="mH">-</td></tr>
+                <tr><th>Evaluation f(n) = g + h</th><td id="mF">-</td></tr>
+                <tr><th>Nodes generated</th><td id="mGen">0</td></tr>
+                <tr><th>Nodes expanded</th><td id="mExp">0</td></tr>
+                <tr><th>Frontier (OPEN) size</th><td id="mOpen">0</td></tr>
+                <tr><th>Explored (CLOSED) size</th><td id="mClosed">0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card shadow-sm mb-3">
+          <div class="card-header fw-semibold">Frontier / Open List <small class="text-muted">(best f first)</small></div>
+          <div class="card-body"><div id="openList" class="list-wrap"><span class="text-muted small">-</span></div></div>
+        </div>
+        <div class="card shadow-sm">
+          <div class="card-header fw-semibold">Explored / Closed List <small class="text-muted">(latest first)</small></div>
+          <div class="card-body"><div id="closedList" class="list-wrap"><span class="text-muted small">-</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary + path -->
+    <div class="row g-4 mt-1">
+      <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-semibold">Solution Summary</div>
+          <div class="card-body">
+            <div id="summaryEmpty" class="text-muted small">The summary appears when the search reaches the goal.</div>
+            <table id="summaryTable" class="table table-sm metric-table mb-0 d-none">
+              <tbody>
+                <tr><th>Solution</th><td id="sFound"></td></tr>
+                <tr><th>Heuristic used</th><td id="sHeur"></td></tr>
+                <tr><th>Total number of moves</th><td id="sMoves"></td></tr>
+                <tr><th>Total nodes generated</th><td id="sGen"></td></tr>
+                <tr><th>Total nodes expanded</th><td id="sExp"></td></tr>
+                <tr><th>Maximum search depth</th><td id="sDepth"></td></tr>
+                <tr><th>Execution time</th><td id="sTime"></td></tr>
+                <tr><th>Path cost</th><td id="sCost"></td></tr>
+                <tr><th>Memory usage (approx.)</th><td id="sMem"></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+          <div class="card-header fw-semibold">Final Solution Path</div>
+          <div class="card-body"><div id="pathList" class="path-wrap"><span class="text-muted small">The solution path appears after the search finishes.</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== COMPARISON ===================== -->
+  <section id="page-compare" class="page d-none">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h2 class="h4">Performance Comparison on the Same Puzzle</h2>
+        <p class="mb-2">Only A* is implemented here (the algorithm assigned to 24BDS0414), so the comparison shows how A* behaves with different heuristics on the <em>current</em> puzzle from the Solver page. The <strong>h(n) = 0</strong> row shows what A* does with no heuristic guidance (it behaves like uniform-cost search).</p>
+        <button id="btnCompare" class="btn btn-primary btn-sm">Run Comparison</button>
+        <span id="cmpPuzzle" class="ms-3 small text-muted"></span>
+        <div id="cmpMsg" class="small mt-2"></div>
+      </div>
+    </div>
+    <div class="card shadow-sm mb-4">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="cmpTable">
+          <thead class="table-light">
+            <tr><th>Algorithm / Heuristic</th><th>Solution Found</th><th>Nodes Generated</th><th>Nodes Expanded</th><th>Moves</th><th>Time</th><th>Memory</th></tr>
+          </thead>
+          <tbody><tr><td colspan="7" class="text-muted">Click "Run Comparison".</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="h6">Nodes expanded (lower is better)</h3>
+        <div id="cmpBars"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== INFO ===================== -->
+  <section id="page-info" class="page d-none">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h2 class="h4">A* Search</h2>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h3 class="h6">Description</h3>
+            <p>A* is an <em>informed</em> best-first search. It chooses the next node to expand using the evaluation function <code>f(n) = g(n) + h(n)</code>, combining the cost already paid to reach a node with an estimate of the cost still to go.</p>
+            <h3 class="h6">Working Principle</h3>
+            <ol>
+              <li>Put the start state in OPEN with f = h(start).</li>
+              <li>Remove the node with the smallest f from OPEN (ties: smaller h).</li>
+              <li>If it is the goal, rebuild the path through parent pointers and stop.</li>
+              <li>Otherwise add it to CLOSED and generate its successors (g + 1).</li>
+              <li>Ignore successors already in CLOSED or already in OPEN with a g that is as good; otherwise insert or update them in OPEN.</li>
+              <li>Repeat until OPEN is empty (no solution) or the goal is selected.</li>
+            </ol>
+          </div>
+          <div class="col-md-6">
+            <h3 class="h6">Advantages</h3>
+            <ul>
+              <li>Optimal and complete when h is admissible.</li>
+              <li>Expands far fewer nodes than uninformed search.</li>
+              <li>Optimally efficient: no other algorithm using the same heuristic expands fewer nodes.</li>
+            </ul>
+            <h3 class="h6">Limitations</h3>
+            <ul>
+              <li>Stores every generated node, so memory is the bottleneck.</li>
+              <li>Quality depends entirely on the heuristic.</li>
+              <li>Still exponential in the worst case.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="table-responsive mt-3">
+          <table class="table table-bordered mb-0">
+            <thead class="table-light"><tr><th>Property</th><th>A* Search</th></tr></thead>
+            <tbody>
+              <tr><th>Time complexity</th><td>O(b<sup>d</sup>) in the worst case (b = branching factor, d = solution depth); in practice governed by the heuristic's accuracy, O(b<sup>&epsilon;d</sup>)</td></tr>
+              <tr><th>Space complexity</th><td>O(b<sup>d</sup>) &mdash; all generated nodes are kept in memory</td></tr>
+              <tr><th>Completeness</th><td>Yes, on a finite state space with positive step costs</td></tr>
+              <tr><th>Optimality</th><td>Yes, if h(n) is admissible (never overestimates); with a closed list h should also be consistent. Both heuristics used here are admissible and consistent.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h4">Heuristics Implemented</h2>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <h3 class="h6">Misplaced Tiles</h3>
+            <p>h(n) = number of tiles (blank excluded) that are not in their goal position. Cheap to compute but weak, so A* expands more nodes.</p>
+          </div>
+          <div class="col-md-6">
+            <h3 class="h6">Manhattan Distance</h3>
+            <p>h(n) = sum over all tiles of |row &minus; goal row| + |col &minus; goal col|. It dominates Misplaced Tiles (h<sub>M</sub> &ge; h<sub>T</sub>), hence expands fewer nodes while staying optimal.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="text-center small text-muted py-4">
+  Artificial Intelligence &middot; Digital Assignment &middot; 24BDS0414 &middot; A* Search
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/puzzle.js"></script>
+<script src="js/astar.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
